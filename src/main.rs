@@ -4,14 +4,14 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream};
 use std::thread;
 
 const SIZE: usize = 1024 * 10;
-const START_PORT: u16 = 1337u16;
-const END_PORT: u16 = 1347u16;
+const START_PORT: u16 = 5000;
+const END_PORT: u16 = 5100;
 
 fn main() {
-    let args: Vec<String> = args().collect();
+    let args_vec: Vec<String> = args().collect();
     let mut joins = Vec::new();
 
-    if args.len() <= 1 {
+    if args_vec.len() <= 1 {
         for port in START_PORT..=END_PORT {
             let port = port;
             joins.push(thread::spawn(move || {
@@ -40,10 +40,12 @@ fn main() {
             }));
         }
     } else {
-        let ip: Ipv4Addr = args[1].parse().expect("Error parsing IP!");
-        for port in START_PORT..=END_PORT {
+        let mut args = args_vec.iter();
+        args.next().unwrap();
+        let ip: Ipv4Addr = args.next().unwrap().parse().expect("Error parsing IP!");
+        while let Some(port) = args.next().cloned() {
             joins.push(thread::spawn(move || {
-                let stream = TcpStream::connect(SocketAddr::new(IpAddr::from(ip), port));
+                let stream = TcpStream::connect(SocketAddr::new(IpAddr::from(ip), port.parse().unwrap()));
                 match stream {
                     Ok(mut stream) => {
                         println!("Connected to {}:{}!", ip, port);
